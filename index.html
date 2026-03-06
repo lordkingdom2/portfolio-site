@@ -4,52 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kaspar Stanschus | Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #ffffff; --text: #000; --grid: rgba(0,0,0,0.05); }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: 'Helvetica Neue', Arial, sans-serif; cursor: grab; }
-        
-        /* Der unendliche Raum */
-        #viewport { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
-        #canvas {
-            position: absolute; width: 10000px; height: 10000px;
-            top: -5000px; left: -5000px;
-            background-image: radial-gradient(var(--grid) 1px, transparent 1px);
-            background-size: 50px 50px;
-            will-change: transform;
-            transition: transform 0.1s ease-out;
+        :root { 
+            --bg: #ffffff; 
+            --text: #000; 
+            --grid: rgba(0,0,0,0.04);
+            --size-title: 35px;   /* 26pt */
+            --size-body: 13.5px;  /* 10pt */
+            --size-caption: 11px; /* 8pt */
         }
 
-        /* Projekt-Cover-Karten */
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            overflow: hidden; background: var(--bg); 
+            font-family: 'Inter Tight', sans-serif; 
+            color: var(--text);
+            cursor: grab;
+        }
+        
+        #viewport { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+        
+        #canvas {
+            position: absolute; width: 10000px; height: 10000px;
+            top: 0; left: 0;
+            background-image: 
+                linear-gradient(var(--grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+            background-size: 100px 100px;
+            will-change: transform;
+        }
+
         .project-card {
-            position: absolute; width: 500px; /* Große, beeindruckende Covers */
-            background: white; padding: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.06);
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: absolute; width: 500px; 
+            background: white; padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
             text-decoration: none; color: inherit;
+            display: flex; flex-direction: column;
         }
 
         .project-card:hover {
-            transform: scale(1.02) translateY(-15px);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.12);
+            transform: scale(1.01) translateY(-10px);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.1);
             z-index: 1000 !important;
         }
         
-        .project-card img { width: 100%; height: auto; display: block; filter: grayscale(20%); transition: filter 0.5s; }
-        .project-card:hover img { filter: grayscale(0%); }
+        .project-card img { width: 100%; height: auto; display: block; margin-bottom: 25px; pointer-events: none; }
 
-        /* Infos erscheinen nur beim Hover */
-        .project-info { margin-top: 15px; opacity: 0; transition: opacity 0.4s ease; }
-        .project-card:hover .project-info { opacity: 1; }
+        .project-title { font-size: var(--size-title); font-weight: 700; line-height: 1.1; margin: 0 0 12px 0; letter-spacing: -0.02em; }
+        .project-caption { font-size: var(--size-caption); font-weight: 300; color: #888; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 18px; }
+        .project-body { font-size: var(--size-body); font-weight: 400; line-height: 1.6; color: #333; max-width: 440px; }
+        .project-body strong { font-weight: 600; }
 
-        .project-title { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.5px; }
-        .project-meta { font-size: 13px; color: #777; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* Minimalistisches UI */
+        /* UI */
         header { position: fixed; top: 40px; left: 40px; z-index: 2000; pointer-events: none; }
-        h1 { margin: 0; font-size: 16px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; }
+        header h1 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase; opacity: 0.5; }
+        
+        #loading { position: fixed; inset: 0; background: white; z-index: 3000; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
     </style>
 </head>
 <body>
+
+<div id="loading">...</div>
 
 <header>
     <h1>KASPAR STANSCHUS</h1>
@@ -61,8 +78,8 @@
     </div>
 </div>
 
+<script src="https://unpkg.com/panzoom@9.4.0/dist/panzoom.min.js"></script>
 <script>
-    // DEIN GOOGLE SHEETS LINK HIER
     const csvUrl = "https://docs.google.com/spreadsheets/d/1pzU_3ax_nj7qFz7iQvapRlKYDlsWoeCiZzXsqNIOIHs/export?format=csv";
 
     async function loadPortfolio() {
@@ -72,47 +89,52 @@
             const rows = data.split('\n').slice(1);
             
             rows.forEach((row, i) => {
-                const [title, location, year, image, url, x, y] = row.split(',');
-                if(title) {
+                const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                if(cols && cols.length >= 7) {
+                    const title = cols[0].replace(/"/g, "");
+                    const location = cols[1].replace(/"/g, "");
+                    const year = cols[2].replace(/"/g, "");
+                    const image = cols[3].replace(/"/g, "");
+                    const body = cols[4].replace(/"/g, "");
+                    const url = cols[5].replace(/"/g, "");
+                    const x = cols[6];
+                    const y = cols[7];
+
                     const card = document.createElement('a');
                     card.className = 'project-card';
-                    card.href = url;
+                    card.href = url !== "#" ? url : "javascript:void(0)";
                     card.style.left = x + 'px';
                     card.style.top = y + 'px';
-                    card.style.zIndex = i;
                     card.innerHTML = `
-                        <img src="${image}" alt="${title}">
-                        <div class="project-info">
-                            <p class="project-title">${title}</p>
-                            <p class="project-meta">${location} • ${year}</p>
-                        </div>
+                        <img src="${image.trim()}" alt="${title}">
+                        <div class="project-caption">${location} — ${year}</div>
+                        <h2 class="project-title">${title}</h2>
+                        <div class="project-body">${body}</div>
                     `;
                     document.getElementById('project-container').appendChild(card);
                 }
             });
-        } catch (e) { console.error("Daten konnten nicht geladen werden", e); }
+            
+            document.getElementById('loading').style.opacity = '0';
+            setTimeout(() => document.getElementById('loading').remove(), 500);
+
+            // Initialisiere High-End Pan & Zoom
+            const element = document.getElementById('canvas');
+            const pz = panzoom(element, {
+                maxZoom: 2,
+                minZoom: 0.1,
+                initialZoom: 0.8,
+                bounds: true,
+                boundsPadding: 0.1
+            });
+            
+            // Zentriere auf Mitte der Leinwand (5000, 5000)
+            pz.moveTo(window.innerWidth/2 - 5000, window.innerHeight/2 - 5000);
+
+        } catch (e) { console.error("Data error", e); }
     }
+
     loadPortfolio();
-
-    // Smooth Drag & Pan Logik
-    let isDragging = false, pos = { x: -4500, y: -4500 }, start = { x: 0, y: 0 };
-    const canvas = document.getElementById('canvas');
-
-    window.addEventListener('mousedown', e => { 
-        isDragging = true; 
-        start = { x: e.clientX - pos.x, y: e.clientY - pos.y };
-        document.body.style.cursor = 'grabbing';
-    });
-    window.addEventListener('mousemove', e => { 
-        if(!isDragging) return;
-        pos.x = e.clientX - start.x;
-        pos.y = e.clientY - start.y;
-        canvas.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
-    });
-    window.addEventListener('mouseup', () => { 
-        isDragging = false; 
-        document.body.style.cursor = 'grab';
-    });
 </script>
 </body>
 </html>
