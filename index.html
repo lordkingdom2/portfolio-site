@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kaspar Stanschus | Portfolio</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
     <style>
         :root { 
             --bg: #ffffff; 
             --text: #000; 
             --grid: rgba(0,0,0,0.04);
-            --size-title: 35px;
-            --size-caption: 11px;
+            /* Umrechnung deiner Portfolio-Vorgaben */
+            --size-title: 35px;   /* entspricht 26pt */
+            --size-caption: 11px; /* entspricht 8pt */
+            --size-body: 13.5px;  /* entspricht 10pt (für später) */
         }
 
         body, html { 
@@ -20,17 +24,18 @@
             font-family: 'Inter Tight', sans-serif; 
             color: var(--text);
             cursor: grab;
-            /* Verhindert das Markieren von Text beim Ziehen */
+            /* Verhindert Textmarkierung beim Ziehen */
             user-select: none;
             -webkit-user-select: none;
         }
-        
+
         body:active { cursor: grabbing; }
         
         #viewport { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
         
         #canvas {
-            position: absolute; width: 10000px; height: 10000px;
+            position: absolute; 
+            width: 10000px; height: 10000px;
             top: 0; left: 0;
             background-image: 
                 linear-gradient(var(--grid) 1px, transparent 1px),
@@ -39,41 +44,47 @@
             will-change: transform;
         }
 
+        /* Projekt-Karten */
         .project-card {
-            position: absolute; width: 500px; 
-            background: white; padding: 25px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+            position: absolute; 
+            width: 500px; 
+            background: white; 
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.03);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
-            text-decoration: none; color: inherit;
-            display: flex; flex-direction: column;
+            text-decoration: none; 
+            color: inherit;
+            display: flex; 
+            flex-direction: column;
             opacity: 0;
             transform: translateY(20px);
             animation: cardAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            
-            /* WICHTIG: Verhindert natives Dragging */
+            /* Verhindert Browser-eigenes Dragging von Links */
             -webkit-user-drag: none;
-            user-drag: none;
         }
 
-        @keyframes cardAppear { to { opacity: 1; transform: translateY(0); } }
+        @keyframes cardAppear {
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         .project-card:hover {
             transform: scale(1.01) translateY(-10px) !important;
-            box-shadow: 0 40px 80px rgba(0,0,0,0.1);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.08);
             z-index: 1000 !important;
         }
         
+        /* Bild-Wrapper gegen das "Springen" */
         .image-wrapper {
             width: 100%;
             aspect-ratio: 4 / 3;
-            background: #f5f5f5;
+            background: #fcfcfc;
             margin-bottom: 25px;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            /* Bilder innerhalb der Karte dürfen den Drag nicht stören */
-            pointer-events: none; 
+            /* Bilder ignorieren Maus-Events, damit Drag flüssig bleibt */
+            pointer-events: none;
         }
         
         .project-card img { 
@@ -82,18 +93,46 @@
             display: block;
         }
 
-        .project-title { font-size: var(--size-title); font-weight: 700; line-height: 1.1; margin: 0; letter-spacing: -0.02em; }
-        .project-caption { font-size: var(--size-caption); font-weight: 300; color: #888; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px; }
+        /* TYPOGRAFIE */
+        .project-caption { 
+            font-size: var(--size-caption); 
+            font-weight: 300; 
+            color: #888; 
+            text-transform: uppercase; 
+            letter-spacing: 0.15em; 
+            margin-bottom: 12px; 
+        }
 
-        header { position: fixed; top: 40px; left: 40px; z-index: 2000; pointer-events: none; }
-        header h1 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase; opacity: 0.5; }
+        .project-title { 
+            font-size: var(--size-title); 
+            font-weight: 700; 
+            line-height: 1.05; 
+            margin: 0; 
+            letter-spacing: -0.02em; 
+        }
+
+        /* UI-Layer */
+        header { 
+            position: fixed; top: 40px; left: 40px; z-index: 2000; 
+            pointer-events: none; 
+        }
+        header h1 { 
+            margin: 0; font-size: 13px; font-weight: 600; 
+            letter-spacing: 5px; text-transform: uppercase; 
+            opacity: 0.4; 
+        }
         
-        #loading { position: fixed; inset: 0; background: white; z-index: 3000; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease; font-size: 12px; letter-spacing: 2px; }
+        #loading { 
+            position: fixed; inset: 0; background: white; 
+            z-index: 3000; display: flex; align-items: center; 
+            justify-content: center; transition: opacity 0.6s ease; 
+            font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
 
-<div id="loading">KASPAR STANSCHUS — PORTFOLIO</div>
+<div id="loading">Kaspar Stanschus — Portfolio</div>
 
 <header>
     <h1>KASPAR STANSCHUS</h1>
@@ -106,8 +145,11 @@
 </div>
 
 <script src="https://unpkg.com/panzoom@9.4.0/dist/panzoom.min.js"></script>
+
 <script>
     const csvUrl = "https://docs.google.com/spreadsheets/d/1pzU_3ax_nj7qFz7iQvapRlKYDlsWoeCiZzXsqNIOIHs/export?format=csv";
+    
+    // Globale Variable für Panzoom
     window.pz = null; 
 
     async function loadPortfolio() {
@@ -120,6 +162,7 @@
             let firstX = 5000, firstY = 5000;
 
             rows.forEach((row, i) => {
+                // CSV Parsing: Erlaubt Kommas innerhalb von Anführungszeichen (Social Network Fix)
                 const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                 
                 if(cols.length >= 7) {
@@ -131,20 +174,19 @@
                     const x = parseFloat(cols[6]) || 5000;
                     const y = parseFloat(cols[7]) || 5000;
 
+                    // Speichere Koordinaten des ersten Projekts für den Start
                     if (i === 0) { firstX = x; firstY = y; }
 
                     const card = document.createElement('a');
                     card.className = 'project-card';
-                    // Link-Logik: Nur folgen, wenn nicht gezogen wurde
                     card.href = (url && url !== "#") ? url : "javascript:void(0)";
                     card.style.left = x + 'px';
                     card.style.top = y + 'px';
                     card.style.animationDelay = (i * 0.1) + 's';
 
-                    // draggable="false" ist entscheidend für das Feeling
                     card.innerHTML = `
                         <div class="image-wrapper">
-                            <img src="${image}" alt="${title}" draggable="false">
+                            <img src="${image}" alt="${title}" draggable="false" onerror="this.parentElement.style.display='none'">
                         </div>
                         <div class="project-caption">${location} — ${year}</div>
                         <h2 class="project-title">${title}</h2>
@@ -153,28 +195,34 @@
                 }
             });
             
+            // Initialisiere Panzoom
             const canvasElement = document.getElementById('canvas');
             window.pz = panzoom(canvasElement, {
-                maxZoom: 2, 
-                minZoom: 0.15, 
-                initialZoom: 0.8, 
-                bounds: true, 
+                maxZoom: 2,
+                minZoom: 0.15,
+                initialZoom: 0.8,
+                bounds: true,
                 boundsPadding: 0.1,
-                // Verhindert, dass der Klick beim Starten des Ziehens ausgelöst wird
-                filterKey: function() { return true; } 
+                // WICHTIG: Erlaubt Ziehen auf Karten ohne Lag
+                filterKey: function() { return true; }
             });
 
+            // Exakte Zentrierung auf das erste Projekt
             setTimeout(() => {
-                const centerX = (window.innerWidth / 2) - firstX - 250;
-                const centerY = (window.innerHeight / 2) - firstY - 200;
+                const zoomLevel = window.pz.getTransform().scale;
+                // Ziel: (Mitte des Bildschirms) - (Position des Objekts * Zoom)
+                const centerX = (window.innerWidth / 2) - ((firstX + 250) * zoomLevel);
+                const centerY = (window.innerHeight / 2) - ((firstY + 200) * zoomLevel);
+                
                 window.pz.moveTo(centerX, centerY);
+                
                 loadingScreen.style.opacity = '0';
                 setTimeout(() => loadingScreen.remove(), 600);
-            }, 200);
+            }, 300);
 
         } catch (e) { 
             console.error("Datenfehler:", e);
-            loadingScreen.innerHTML = "FEHLER BEIM LADEN";
+            loadingScreen.innerHTML = "FEHLER BEIM LADEN DER DATEN";
         }
     }
 
